@@ -27,6 +27,7 @@ except ImportError:
 	visualize = None
 
 # 2-input XOR inputs and expected outputs.
+
 xor_inputs = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
 xor_outputs = [(0.0,),     (1.0,),     (1.0,),     (0.0,)]
 
@@ -37,11 +38,12 @@ def eval_genome(genome, config):
 	arguments (a single genome and the genome class configuration data) and
 	should return one float (that genome's fitness).
 	"""
-	game_matrix = logic.new_game(12)
-	game_matrix = logic.add_two(game)
+	game_matrix = logic.new_game(4)
+	game_matrix = logic.add_two(game_matrix)
 	net = neat.nn.FeedForwardNetwork.create(genome, config)
 	error = 4.0
-	for xi, xo in zip(xor_inputs, xor_outputs):
+	while logic.game_state(game_matrix) is 'not over':
+		flat_matrix = lambda l: [item for game_matrix in l for item in sublist]
 		output = net.activate(xi)
 		error -= (output[0] - xo[0]) ** 2
 	return error
