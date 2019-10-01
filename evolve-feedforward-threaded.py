@@ -19,7 +19,7 @@ from __future__ import print_function
 
 import os
 
-import neat, logic
+import neat, logic, time
 
 try:
 	import visualize
@@ -40,13 +40,30 @@ def eval_genome(genome, config):
 	"""
 	game_matrix = logic.new_game(4)
 	game_matrix = logic.add_two(game_matrix)
+	flatten = lambda l: [item for sublist in l for item in sublist]
 	net = neat.nn.FeedForwardNetwork.create(genome, config)
-	error = 4.0
-	while logic.game_state(game_matrix) is 'not over':
-		flat_matrix = lambda l: [item for game_matrix in l for item in sublist]
-		output = net.activate(xi)
-		error -= (output[0] - xo[0]) ** 2
-	return error
+	output = []
+	actions = [logic.up, logic.down, logic.left, logic.right]
+
+	while logic.game_state(game_matrix) == 'not over':
+		flat_matrix = flatten(game_matrix)
+		output = net.activate(flat_matrix)
+		sorted_output = sorted(output)
+		max_index = output.index(sorted_output[-1])
+		new_game_matrix = actions[max_index](game_matrix)
+		if not new_game_matrix[1]:
+			second_max_index = output.index(sorted_output[-2])
+			new_game_matrix = actions[second_max_index](game_matrix)
+		if not new_game_matrix[1]:
+			third_max_index = output.index(sorted_output[-3])
+			new_game_matrix = actions[third_max_index](game_matrix)
+		if not new_game_matrix[1]:
+			fourth_max_index = output.index(sorted_output[-4])
+			new_game_matrix = actions[fourth_max_index](game_matrix)
+		game_matrix = new_game_matrix[0]
+		game_matrix = logic.add_two(game_matrix)
+	print(game_matrix)
+	return sum(flatten(game_matrix))
 
 
 def run(config_file):
@@ -65,7 +82,7 @@ def run(config_file):
 	p.add_reporter(stats)
 
 	# Run for up to 300 generations.
-	pe = neat.ThreadedEvaluator(4, eval_genome)
+	pe = neat.ParallelEvaluator(4, eval_genome)
 	winner = p.run(pe.evaluate, 300)
 	pe.stop()
 
