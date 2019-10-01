@@ -38,31 +38,64 @@ def eval_genome(genome, config):
 	arguments (a single genome and the genome class configuration data) and
 	should return one float (that genome's fitness).
 	"""
+
+	# Initialize game
 	game_matrix = logic.new_game(4)
 	game_matrix = logic.add_two(game_matrix)
+
+	# Flatten function
 	flatten = lambda l: [item for sublist in l for item in sublist]
 	net = neat.nn.FeedForwardNetwork.create(genome, config)
-	output = []
+
+	# Action functions
 	actions = [logic.up, logic.down, logic.left, logic.right]
 
 	while logic.game_state(game_matrix) == 'not over':
+		# Flatten game matrix
 		flat_matrix = flatten(game_matrix)
+
+		# Predict moves
 		output = net.activate(flat_matrix)
+		print(output)
+		# Copy list and sort predictions from lowest to highest
 		sorted_output = sorted(output)
+		print(sorted_output)
+		# Get max index from output list and use assosiated function from actions
 		max_index = output.index(sorted_output[-1])
+		print(max_index)
 		new_game_matrix = actions[max_index](game_matrix)
+		print(new_game_matrix[1])
+		# If move is not valid use different direction
 		if not new_game_matrix[1]:
+			# Get second max index from output list and use assosiated function from actions
 			second_max_index = output.index(sorted_output[-2])
+			# TODO if output has same values all directions are not checked
+			print(second_max_index)
 			new_game_matrix = actions[second_max_index](game_matrix)
+			print(new_game_matrix[1])
+		# If move is not valid use different direction
 		if not new_game_matrix[1]:
+			# Get third max index from output list and use assosiated function from actions
 			third_max_index = output.index(sorted_output[-3])
+			print(third_max_index)
 			new_game_matrix = actions[third_max_index](game_matrix)
+			print(new_game_matrix[1])
+		# If move is not valid use different direction
 		if not new_game_matrix[1]:
+			# Get fourth max index from output list and use assosiated function from actions
 			fourth_max_index = output.index(sorted_output[-4])
+			print(fourth_max_index)
 			new_game_matrix = actions[fourth_max_index](game_matrix)
+			print(new_game_matrix[1])
+
+		# Set game matrix to updated matrix from (game, true) tuple
 		game_matrix = new_game_matrix[0]
-		game_matrix = logic.add_two(game_matrix)
+		# Generate new tile
+		if logic.game_state(game_matrix) == 'not over':
+			game_matrix = logic.add_two(game_matrix)
+		print(game_matrix)
 	print(game_matrix)
+	# Fitness function is a summation of all values on game board
 	return sum(flatten(game_matrix))
 
 
@@ -82,7 +115,7 @@ def run(config_file):
 	p.add_reporter(stats)
 
 	# Run for up to 300 generations.
-	pe = neat.ParallelEvaluator(4, eval_genome)
+	pe = neat.ParallelEvaluator(1, eval_genome)
 	winner = p.run(pe.evaluate, 300)
 	pe.stop()
 
