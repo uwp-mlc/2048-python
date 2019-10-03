@@ -56,45 +56,34 @@ def eval_genome(genome, config):
 
 		# Predict moves
 		output = net.activate(flat_matrix)
-		print(output)
 		# Copy list and sort predictions from lowest to highest
-		sorted_output = sorted(output)
-		print(sorted_output)
+		sorted_output = sorted(enumerate(output), key=lambda x:x[1])
 		# Get max index from output list and use assosiated function from actions
-		max_index = output.index(sorted_output[-1])
-		print(max_index)
+		max_index = sorted_output[-1][0]
 		new_game_matrix = actions[max_index](game_matrix)
-		print(new_game_matrix[1])
 		# If move is not valid use different direction
 		if not new_game_matrix[1]:
 			# Get second max index from output list and use assosiated function from actions
-			second_max_index = output.index(sorted_output[-2])
+			second_max_index = sorted_output[-2][0]
 			# TODO if output has same values all directions are not checked
-			print(second_max_index)
 			new_game_matrix = actions[second_max_index](game_matrix)
-			print(new_game_matrix[1])
 		# If move is not valid use different direction
 		if not new_game_matrix[1]:
 			# Get third max index from output list and use assosiated function from actions
-			third_max_index = output.index(sorted_output[-3])
-			print(third_max_index)
+			third_max_index = sorted_output[-3][0]
 			new_game_matrix = actions[third_max_index](game_matrix)
-			print(new_game_matrix[1])
 		# If move is not valid use different direction
 		if not new_game_matrix[1]:
 			# Get fourth max index from output list and use assosiated function from actions
-			fourth_max_index = output.index(sorted_output[-4])
-			print(fourth_max_index)
+			fourth_max_index = sorted_output[-4][0]
 			new_game_matrix = actions[fourth_max_index](game_matrix)
-			print(new_game_matrix[1])
 
 		# Set game matrix to updated matrix from (game, true) tuple
 		game_matrix = new_game_matrix[0]
 		# Generate new tile
 		if logic.game_state(game_matrix) == 'not over':
 			game_matrix = logic.add_two(game_matrix)
-		print(game_matrix)
-	print(game_matrix)
+	#print(game_matrix)
 	# Fitness function is a summation of all values on game board
 	return sum(flatten(game_matrix))
 
