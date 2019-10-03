@@ -126,7 +126,9 @@ class BotGameGrid(GameGrid):
 
             # Action functions
             actions = [logic.up, logic.down, logic.left, logic.right]
+            move_counter = 0
             while logic.game_state(game_matrix) == 'not over':
+                move_counter += 1
                 # Flatten game matrix
                 flat_matrix = flatten(game_matrix)
 
@@ -134,7 +136,6 @@ class BotGameGrid(GameGrid):
                 output = net.activate(flat_matrix)
                 # Copy list and sort predictions from lowest to highest
                 sorted_output = sorted(enumerate(output), key=lambda x:x[1])
-                print(sorted_output)
                 # Get max index from output list and use assosiated function from actions
                 max_index = sorted_output[-1][0]
                 new_game_matrix = actions[max_index](game_matrix)
@@ -161,8 +162,8 @@ class BotGameGrid(GameGrid):
                 self.matrix = game_matrix
                 self.history_matrixs.append(self.matrix)
                 self.update_grid_cells()
-                print(logic.game_state(game_matrix))
                 # Generate new tile
+            print(f"Number of moves was {move_counter}")
                 
 
 
