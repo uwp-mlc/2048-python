@@ -19,7 +19,7 @@ from __future__ import print_function
 
 import os
 
-import neat, logic, time
+import neat, logic, time, pickle
 
 try:
 	import visualize
@@ -98,15 +98,18 @@ def run(config_file):
 
 	# Create the population, which is the top-level object for a NEAT run.
 	p = neat.Population(config)
-
+	p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-299')
 	# Add a stdout reporter to show progress in the terminal.
 	p.add_reporter(neat.StdOutReporter(True))
 	stats = neat.StatisticsReporter()
 	p.add_reporter(stats)
+	p.add_reporter(neat.Checkpointer(50))
 
 	# Run for up to 300 generations.
 	pe = neat.ThreadedEvaluator(4, eval_genome)
-	winner = p.run(pe.evaluate, 300)
+	winner = p.run(pe.evaluate, 1)
+	filehandler = open("./winner.pkl", 'wb', pickle.HIGHEST_PROTOCOL) 
+	pickle.dump(winner, filehandler)
 	pe.stop()
 
 	# Display the winning genome.
