@@ -42,6 +42,7 @@ def eval_genome(genome, config):
 	# Initialize game
 	game_matrix = logic.new_game(4)
 	game_matrix = logic.add_two(game_matrix)
+	game_matrix = logic.add_two(game_matrix)
 
 	# Flatten function
 	flatten = lambda l: [item for sublist in l for item in sublist]
@@ -104,27 +105,12 @@ def run(config_file):
 	p.add_reporter(stats)
 
 	# Run for up to 300 generations.
-	pe = neat.ParallelEvaluator(1, eval_genome)
+	pe = neat.ThreadedEvaluator(4, eval_genome)
 	winner = p.run(pe.evaluate, 300)
 	pe.stop()
 
 	# Display the winning genome.
 	print('\nBest genome:\n{!s}'.format(winner))
-
-	# Show output of the most fit genome against training data.
-	print('\nOutput:')
-	winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
-	for xi, xo in zip(xor_inputs, xor_outputs):
-		output = winner_net.activate(xi)
-		print(
-			"input {!r}, expected output {!r}, got {!r}".format(xi, xo, output)
-			)
-
-	if visualize is not None:
-		node_names = {-1: 'A', -2: 'B', 0: 'A XOR B'}
-		visualize.draw_net(config, winner, True, node_names=node_names)
-		visualize.plot_stats(stats, ylog=False, view=True)
-		visualize.plot_species(stats, view=True)
 
 
 if __name__ == '__main__':
