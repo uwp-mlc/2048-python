@@ -50,43 +50,45 @@ def eval_genome(genome, config):
 
 	# Action functions
 	actions = [logic.up, logic.down, logic.left, logic.right]
+	fitness = 0
+	for i in range(3):
+		while logic.game_state(game_matrix) == 'not over':
+			# Flatten game matrix
+			flat_matrix = flatten(game_matrix)
 
-	while logic.game_state(game_matrix) == 'not over':
-		# Flatten game matrix
-		flat_matrix = flatten(game_matrix)
+			# Predict moves
+			output = net.activate(flat_matrix)
+			# Copy list and sort predictions from lowest to highest
+			sorted_output = sorted(enumerate(output), key=lambda x:x[1])
+			# Get max index from output list and use assosiated function from actions
+			max_index = sorted_output[-1][0]
+			new_game_matrix = actions[max_index](game_matrix)
+			# If move is not valid use different direction
+			if not new_game_matrix[1]:
+				# Get second max index from output list and use assosiated function from actions
+				second_max_index = sorted_output[-2][0]
+				# TODO if output has same values all directions are not checked
+				new_game_matrix = actions[second_max_index](game_matrix)
+			# If move is not valid use different direction
+			if not new_game_matrix[1]:
+				# Get third max index from output list and use assosiated function from actions
+				third_max_index = sorted_output[-3][0]
+				new_game_matrix = actions[third_max_index](game_matrix)
+			# If move is not valid use different direction
+			if not new_game_matrix[1]:
+				# Get fourth max index from output list and use assosiated function from actions
+				fourth_max_index = sorted_output[-4][0]
+				new_game_matrix = actions[fourth_max_index](game_matrix)
 
-		# Predict moves
-		output = net.activate(flat_matrix)
-		# Copy list and sort predictions from lowest to highest
-		sorted_output = sorted(enumerate(output), key=lambda x:x[1])
-		# Get max index from output list and use assosiated function from actions
-		max_index = sorted_output[-1][0]
-		new_game_matrix = actions[max_index](game_matrix)
-		# If move is not valid use different direction
-		if not new_game_matrix[1]:
-			# Get second max index from output list and use assosiated function from actions
-			second_max_index = sorted_output[-2][0]
-			# TODO if output has same values all directions are not checked
-			new_game_matrix = actions[second_max_index](game_matrix)
-		# If move is not valid use different direction
-		if not new_game_matrix[1]:
-			# Get third max index from output list and use assosiated function from actions
-			third_max_index = sorted_output[-3][0]
-			new_game_matrix = actions[third_max_index](game_matrix)
-		# If move is not valid use different direction
-		if not new_game_matrix[1]:
-			# Get fourth max index from output list and use assosiated function from actions
-			fourth_max_index = sorted_output[-4][0]
-			new_game_matrix = actions[fourth_max_index](game_matrix)
-
-		# Set game matrix to updated matrix from (game, true) tuple
-		game_matrix = new_game_matrix[0]
-		# Generate new tile
-		if logic.game_state(game_matrix) == 'not over':
-			game_matrix = logic.add_two(game_matrix)
-	#print(game_matrix)
-	# Fitness function is a summation of all values on game board
-	return sum(flatten(game_matrix))
+			# Set game matrix to updated matrix from (game, true) tuple
+			game_matrix = new_game_matrix[0]
+			# Generate new tile
+			if logic.game_state(game_matrix) == 'not over':
+				game_matrix = logic.add_two(game_matrix)
+		#print(game_matrix)
+		# Fitness function is a summation of all values on game board
+		fitness += sum(flatten(game_matrix))
+	return fitness / 3
 
 
 def run(config_file):
@@ -98,7 +100,6 @@ def run(config_file):
 
 	# Create the population, which is the top-level object for a NEAT run.
 	p = neat.Population(config)
-	p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-299')
 	# Add a stdout reporter to show progress in the terminal.
 	p.add_reporter(neat.StdOutReporter(True))
 	stats = neat.StatisticsReporter()
@@ -106,8 +107,8 @@ def run(config_file):
 	p.add_reporter(neat.Checkpointer(50))
 
 	# Run for up to 300 generations.
-	pe = neat.ThreadedEvaluator(4, eval_genome)
-	winner = p.run(pe.evaluate, 1)
+	pe = neat.ThreadedEvaluator(8, eval_genome)
+	winner = p.run(pe.evaluate, 1000)
 	filehandler = open("./winner.pkl", 'wb', pickle.HIGHEST_PROTOCOL) 
 	pickle.dump(winner, filehandler)
 	pe.stop()
